@@ -36,10 +36,27 @@ def predict():
         # Scale features
         scaled_features = scaler.transform([features])
 
-        # Make prediction
-        prediction = model.predict(scaled_features)
+        # Get probability prediction
+        probability = model.predict_proba(scaled_features)[0][1]
+        risk_percentage = round(probability * 100, 2)
 
-        result = "High Risk of Heart Attack 💔" if prediction[0] == 1 else "Low Risk of Heart Attack ❤️"
+        # Determine risk level and color
+        if risk_percentage < 30:
+            risk_level = "Low"
+            color = "green"
+        elif risk_percentage < 70:
+            risk_level = "Moderate"
+            color = "orange"
+        else:
+            risk_level = "High"
+            color = "red"
+
+        result = {
+            "percentage": risk_percentage,
+            "level": risk_level,
+            "color": color
+        }
+        
         return render_template("index.html", prediction=result)
 
     except Exception as e:
