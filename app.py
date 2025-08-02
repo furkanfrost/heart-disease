@@ -1,94 +1,44 @@
-# app.py
-from flask import Flask, render_template, request
-import joblib
-import numpy as np
+from flask import Flask, render_template, request, redirect, url_for, session, send_file
+from io import BytesIO
+from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'
 
-# Load trained model and scaler with error handling
-try:
-    model = joblib.load("heart_model.pkl")
-    scaler = joblib.load("heart_scaler.pkl")
-except FileNotFoundError as e:
-    print(f"Error: Model files not found. Please ensure heart_model.pkl and heart_scaler.pkl exist. Error: {e}")
-    raise
-except Exception as e:
-    print(f"Error loading model files: {e}")
-    raise
-
-@app.route("/", methods=["GET"])
+@app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template('index.html')
 
-@app.route("/predict", methods=["POST"])
+@app.route('/predict', methods=['POST'])
 def predict():
-    try:
-        # Validate required fields
-        required_fields = ["Age", "Sex", "ChestPainType", "RestingBP", "Cholesterol", 
-                         "FastingBS", "RestingECG", "MaxHR", "ExerciseAngina", 
-                         "Oldpeak", "ST_Slope", "ca", "thal"]
-        
-        for field in required_fields:
-            if not request.form.get(field):
-                return render_template("index.html", error=f"Missing required field: {field}")
+    # Bu örnekte dummy veriler kullanılıyor, model entegrasyonu burada yapılmalı
+    age = request.form.get('Age')
+    risk_level = "Moderate"
+    risk_percentage = 57
+    color = "#ffa726"
+    session['prediction_result'] = {
+        "level": risk_level,
+        "percentage": risk_percentage,
+        "color": color
+    }
+    return render_template('index.html', prediction=session['prediction_result'])
 
-        # Collect and convert form inputs
-        try:
-            features = [
-                float(request.form.get("Age")),
-                1 if request.form.get("Sex") == "M" else 0,
-                {"ATA": 0, "NAP": 1, "ASY": 2, "TA": 3}[request.form.get("ChestPainType")],
-                float(request.form.get("RestingBP")),
-                float(request.form.get("Cholesterol")),
-                float(request.form.get("FastingBS")),
-                {"Normal": 0, "ST": 1, "LVH": 2}[request.form.get("RestingECG")],
-                float(request.form.get("MaxHR")),
-                1 if request.form.get("ExerciseAngina") == "Y" else 0,
-                float(request.form.get("Oldpeak")),
-                {"Up": 0, "Flat": 1, "Down": 2}[request.form.get("ST_Slope")],
-                float(request.form.get("ca")),
-                float(request.form.get("thal"))
-            ]
-        except ValueError as e:
-            return render_template("index.html", error=f"Invalid numeric value: {str(e)}")
-        except KeyError as e:
-            return render_template("index.html", error=f"Invalid category value: {str(e)}")
+@app.route('/download-pdf')
+def download_pdf():
+    prediction = session.get("prediction_result")
+    if not prediction:
+        return "No prediction result available to export.", 400
 
-        # Scale features
-        try:
-            scaled_features = scaler.transform([features])
-        except Exception as e:
-            return render_template("index.html", error=f"Error scaling features: {str(e)}")
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer)
+    p.setFont("Helvetica", 14)
+    p.drawString(100, 800, "Heart Attack Risk Report")
+    p.drawString(100, 770, f"Risk Level: {prediction['level']}")
+    p.drawString(100, 740, f"Risk Percentage: {prediction['percentage']}%")
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name="heart_risk_report.pdf", mimetype="application/pdf")
 
-        # Get probability prediction
-        try:
-            probability = model.predict_proba(scaled_features)[0][1]
-        except Exception as e:
-            return render_template("index.html", error=f"Error making prediction: {str(e)}")
-
-        risk_percentage = round(probability * 100, 2)
-
-        # Determine risk level and color
-        if risk_percentage < 30:
-            risk_level = "Low"
-            color = "green"
-        elif risk_percentage < 70:
-            risk_level = "Moderate"
-            color = "orange"
-        else:
-            risk_level = "High"
-            color = "red"
-
-        result = {
-            "percentage": risk_percentage,
-            "level": risk_level,
-            "color": color
-        }
-
-        return render_template("index.html", prediction=result)
-
-    except Exception as e:
-        return render_template("index.html", error=f"An unexpected error occurred: {str(e)}")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)

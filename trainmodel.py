@@ -1,79 +1,124 @@
-# train_model.py
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import classification_report, confusion_matrix
+# app.py
+from flask import Flask, render_template, request, session, send_file
 import joblib
-import os
 import numpy as np
+import os
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
-def train_and_evaluate(X, y, test_size=0.2, random_state=42):
-    # Split data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state
-    )
+app = Flask(__name__)
+app.secret_key = "your-secret-key"  # PDF için session kullanacağız
 
-    # Initialize and train the Decision Tree model
-    model = DecisionTreeClassifier(random_state=random_state, max_depth=5)
-    model.fit(X_train, y_train)
+# Load trained model and scaler with error handling
+try:
+    model = joblib.load("heart_model.pkl")
+    scaler = joblib.load("heart_scaler.pkl")
+except FileNotFoundError as e:
+    print(f"Error: Model files not found. Please ensure heart_model.pkl and heart_scaler.pkl exist. Error: {e}")
+    raise
+except Exception as e:
+    print(f"Error loading model files: {e}")
+    raise
 
-    # Predict on the test set
-    y_pred = model.predict(X_test)
+@app.route("/", methods=["GET"])
+def index():
+    return render_template("index.html")
 
-    # Evaluate the model
-    print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
-    print("\nClassification Report:\n", classification_report(y_test, y_pred))
-
-    return model
-
-def save_model_and_scaler(model, scaler, model_path="heart_model.pkl", scaler_path="heart_scaler.pkl"):
-    """Save the trained model and scaler to disk."""
+@app.route("/predict", methods=["POST"])
+def predict():
     try:
-        # Ensure the model and scaler are using numpy arrays
-        if hasattr(model, 'predict_proba'):
-            test_input = np.zeros((1, model.n_features_in_))
-            model.predict_proba(test_input)
-        
-        joblib.dump(model, model_path)
-        joblib.dump(scaler, scaler_path)
-        print(f"Model saved to {model_path}")
-        print(f"Scaler saved to {scaler_path}")
+        required_fields = [
+            "Age", "Sex", "ChestPainType", "RestingBP", "Cholesterol",
+            "FastingBS", "RestingECG", "MaxHR", "ExerciseAngina",
+            "Oldpeak", "ST_Slope", "ca", "thal"
+        ]
+
+        for field in required_fields:
+            if not request.form.get(field):
+                return render_template("index.html", error=f"Missing required field: {field}")
+
+        try:
+            chest_pain_map = {"ATA": 0, "NAP": 1, "ASY": 2, "TA": 3}
+            resting_ecg_map = {"Normal": 0, "ST": 1, "LVH": 2}
+            st_slope_map = {"Up": 0, "Flat": 1, "Down": 2}
+
+            features = [
+                float(request.form.get("Age")),
+                1 if request.form.get("Sex") == "M" else 0,
+                chest_pain_map.get(request.form.get("ChestPainType"), -1),
+                float(request.form.get("RestingBP")),
+                float(request.form.get("Cholesterol")),
+                float(request.form.get("FastingBS")),
+                resting_ecg_map.get(request.form.get("RestingECG"), -1),
+                float(request.form.get("MaxHR")),
+                1 if request.form.get("ExerciseAngina") == "Y" else 0,
+                float(request.form.get("Oldpeak")),
+                st_slope_map.get(request.form.get("ST_Slope"), -1),
+                float(request.form.get("ca")),
+                float(request.form.get("thal"))
+            ]
+
+            if -1 in features:
+                return render_template("index.html", error="Invalid categorical value entered.")
+
+        except ValueError as e:
+            return render_template("index.html", error=f"Invalid numeric value: {str(e)}")
+        except Exception as e:
+            return render_template("index.html", error=f"Error processing input: {str(e)}")
+
+        try:
+            scaled_features = scaler.transform([features])
+        except Exception as e:
+            return render_template("index.html", error=f"Error scaling features: {str(e)}")
+
+        try:
+            probability = model.predict_proba(scaled_features)[0][1]
+        except Exception as e:
+            return render_template("index.html", error=f"Error making prediction: {str(e)}")
+
+        risk_percentage = round(probability * 100, 2)
+
+        if risk_percentage < 30:
+            risk_level = "Low"
+            color = "green"
+        elif risk_percentage < 70:
+            risk_level = "Moderate"
+            color = "orange"
+        else:
+            risk_level = "High"
+            color = "red"
+
+        result = {
+            "percentage": risk_percentage,
+            "level": risk_level,
+            "color": color
+        }
+
+        session['prediction_result'] = result
+
+        return render_template("index.html", prediction=result)
+
     except Exception as e:
-        print(f"Error saving model files: {e}")
-        raise
+        return render_template("index.html", error=f"An unexpected error occurred: {str(e)}")
+
+@app.route("/download-pdf", methods=["GET"])
+def download_pdf():
+    result = session.get('prediction_result')
+    if not result:
+        return render_template("index.html", error="No prediction result available to export.")
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    p.setFont("Helvetica", 12)
+    p.drawString(100, 800, "Heart Attack Risk Prediction Report")
+    p.drawString(100, 770, f"Risk Level: {result['level']}")
+    p.drawString(100, 750, f"Risk Percentage: {result['percentage']}%")
+    p.save()
+    buffer.seek(0)
+
+    return send_file(buffer, as_attachment=True, download_name="heart_risk_report.pdf", mimetype="application/pdf")
 
 if __name__ == "__main__":
-    import pandas as pd
-    from sklearn.preprocessing import StandardScaler
-
-    try:
-        # Load the dataset
-        print("Loading dataset...")
-        df = pd.read_csv("data/heart.csv")
-        print("Dataset loaded successfully.")
-
-        # Prepare features and target
-        X = df.drop('target', axis=1)
-        y = df['target']
-        print(f"Features shape: {X.shape}, Target shape: {y.shape}")
-
-        # Scale features
-        print("Scaling features...")
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
-        print("Features scaled successfully.")
-
-        # Train and evaluate
-        print("Training model...")
-        model = train_and_evaluate(X_scaled, y)
-        print("Model trained successfully.")
-
-        # Save model and scaler
-        print("Saving model and scaler...")
-        save_model_and_scaler(model, scaler)
-        print("Model and scaler saved successfully.")
-
-    except FileNotFoundError:
-        print("Error: Could not find the heart.csv file in the data directory.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        raise
+    debug_mode = os.environ.get("FLASK_DEBUG", "true").lower() == "true"
+    app.run(debug=debug_mode)
