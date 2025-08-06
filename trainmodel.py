@@ -10,12 +10,19 @@ from reportlab.pdfgen import canvas
 app = Flask(__name__)
 app.secret_key = "your-secret-key"  # PDF için session kullanacağız
 
+# Paths to model artifacts
+MODEL_DIR = 'models'
+MODEL_PATH = os.path.join(MODEL_DIR, "heart_model.pkl")
+SCALER_PATH = os.path.join(MODEL_DIR, "heart_scaler.pkl")
+
 # Load trained model and scaler with error handling
 try:
-    model = joblib.load("heart_model.pkl")
-    scaler = joblib.load("heart_scaler.pkl")
+    model = joblib.load(MODEL_PATH)
+    scaler = joblib.load(SCALER_PATH)
 except FileNotFoundError as e:
-    print(f"Error: Model files not found. Please ensure heart_model.pkl and heart_scaler.pkl exist. Error: {e}")
+    print(
+        f"Error: Model files not found. Please ensure {MODEL_PATH} and {SCALER_PATH} exist. Error: {e}"
+    )
     raise
 except Exception as e:
     print(f"Error loading model files: {e}")

@@ -24,8 +24,12 @@ X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, 
 model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 
+# Ensure models directory exists
+MODEL_DIR = 'models'
+os.makedirs(MODEL_DIR, exist_ok=True)
+
 # Save model and scaler
-joblib.dump(model, 'heart_model.pkl')
-joblib.dump(scaler, 'heart_scaler.pkl')
+joblib.dump(model, os.path.join(MODEL_DIR, 'heart_model.pkl'))
+joblib.dump(scaler, os.path.join(MODEL_DIR, 'heart_scaler.pkl'))
 
 print("Model and scaler have been saved successfully.")
