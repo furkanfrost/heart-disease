@@ -8,7 +8,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
-app.secret_key = "your-secret-key"  # PDF için session kullanacağız
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")  # PDF için session kullanacağız
 
 # Load trained model and scaler with error handling
 try:
