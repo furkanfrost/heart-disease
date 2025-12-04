@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Heart Attack Risk Assessment AI</title>
+    <!-- Google Fonts for modern typography -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -275,14 +276,14 @@
             <!-- 1. Age -->
             <div class="input-group">
                 <label for="Age">Patient Age</label>
-                <input type="number" name="Age" min="18" max="100" placeholder="e.g. 54" required>
+                <input type="number" id="Age" name="Age" min="18" max="100" placeholder="e.g. 54" required>
                 <div class="range-info">Valid range: 18 - 100 years</div>
             </div>
 
             <!-- 2. Sex -->
             <div class="input-group">
                 <label for="Sex">Biological Sex</label>
-                <select name="Sex" required>
+                <select id="Sex" name="Sex" required>
                     <option value="" disabled selected>Select sex...</option>
                     <option value="1">Male</option>
                     <option value="0">Female</option>
@@ -293,7 +294,7 @@
             <!-- 3. Chest Pain Type -->
             <div class="input-group">
                 <label for="ChestPainType">Chest Pain Type</label>
-                <select name="ChestPainType" required>
+                <select id="ChestPainType" name="ChestPainType" required>
                     <option value="0">Typical Angina (TA)</option>
                     <option value="1">Atypical Angina (ATA)</option>
                     <option value="2">Non-Anginal Pain (NAP)</option>
@@ -305,21 +306,21 @@
             <!-- 4. Resting BP -->
             <div class="input-group">
                 <label for="RestingBP">Resting Blood Pressure</label>
-                <input type="number" name="RestingBP" min="80" max="200" placeholder="e.g. 120" required>
+                <input type="number" id="RestingBP" name="RestingBP" min="80" max="200" placeholder="e.g. 120" required>
                 <div class="range-info">Normal: 90-120 mmHg (Systolic)</div>
             </div>
 
             <!-- 5. Cholesterol -->
             <div class="input-group">
                 <label for="Cholesterol">Serum Cholesterol</label>
-                <input type="number" name="Cholesterol" min="100" max="600" placeholder="e.g. 198" required>
+                <input type="number" id="Cholesterol" name="Cholesterol" min="100" max="600" placeholder="e.g. 198" required>
                 <div class="range-info">Normal: < 200 mg/dl</div>
             </div>
 
             <!-- 6. Fasting BS -->
             <div class="input-group">
                 <label for="FastingBS">Fasting Blood Sugar > 120?</label>
-                <select name="FastingBS" required>
+                <select id="FastingBS" name="FastingBS" required>
                     <option value="0">No (Normal)</option>
                     <option value="1">Yes (High / Diabetic)</option>
                 </select>
@@ -329,7 +330,7 @@
             <!-- 7. Resting ECG -->
             <div class="input-group">
                 <label for="RestingECG">Resting ECG Results</label>
-                <select name="RestingECG" required>
+                <select id="RestingECG" name="RestingECG" required>
                     <option value="0">Normal</option>
                     <option value="1">ST-T Wave Abnormality</option>
                     <option value="2">Left Ventricular Hypertrophy</option>
@@ -340,14 +341,14 @@
             <!-- 8. Max HR -->
             <div class="input-group">
                 <label for="MaxHR">Max Heart Rate Achieved</label>
-                <input type="number" name="MaxHR" min="60" max="220" placeholder="e.g. 150" required>
+                <input type="number" id="MaxHR" name="MaxHR" min="60" max="220" placeholder="e.g. 150" required>
                 <div class="range-info">Typ. Max: 220 - Age</div>
             </div>
 
             <!-- 9. Exercise Angina -->
             <div class="input-group">
                 <label for="ExerciseAngina">Exercise Induced Angina?</label>
-                <select name="ExerciseAngina" required>
+                <select id="ExerciseAngina" name="ExerciseAngina" required>
                     <option value="0">No</option>
                     <option value="1">Yes</option>
                 </select>
@@ -357,14 +358,14 @@
             <!-- 10. Oldpeak -->
             <div class="input-group">
                 <label for="Oldpeak">Oldpeak (ST Depression)</label>
-                <input type="number" step="0.1" name="Oldpeak" min="0" max="6.2" placeholder="e.g. 1.5" required>
+                <input type="number" id="Oldpeak" step="0.1" name="Oldpeak" min="0" max="6.2" placeholder="e.g. 1.5" required>
                 <div class="range-info">Range: 0 - 6.0 (Relative to rest)</div>
             </div>
 
             <!-- 11. ST Slope -->
             <div class="input-group">
                 <label for="ST_Slope">Slope of Peak Exercise ST</label>
-                <select name="ST_Slope" required>
+                <select id="ST_Slope" name="ST_Slope" required>
                     <option value="0">Upsloping (Better)</option>
                     <option value="1">Flat (Risk)</option>
                     <option value="2">Downsloping (High Risk)</option>
@@ -375,14 +376,14 @@
             <!-- 12. CA (Major Vessels) -->
             <div class="input-group">
                 <label for="ca">Major Vessels Colored</label>
-                <input type="number" name="ca" min="0" max="3" placeholder="0-3" required>
+                <input type="number" id="ca" name="ca" min="0" max="3" placeholder="0-3" required>
                 <div class="range-info">Fluoroscopy result (0-3)</div>
             </div>
 
             <!-- 13. Thal -->
             <div class="input-group">
                 <label for="thal">Thalassemia Result</label>
-                <select name="thal" required>
+                <select id="thal" name="thal" required>
                     <option value="1">Normal</option>
                     <option value="2">Fixed Defect</option>
                     <option value="3">Reversable Defect</option>
