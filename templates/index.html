@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Attack Risk Assessment AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1a237e 0%, #0277bd 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --input-bg: #f8f9fa;
+            --input-border: #e0e0e0;
+            --text-color: #2c3e50;
+            --accent-color: #0d47a1;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--primary-gradient);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--glass-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative Header Line */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .header h1 {
+            color: var(--accent-color);
+            font-size: 2.2em;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: #666;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .header::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: var(--accent-color);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        /* Form Grid Layout */
+        form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 Columns */
+            gap: 25px;
+        }
+
+        /* Responsive: Single column on mobile */
+        @media (max-width: 768px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        input, select {
+            padding: 12px 15px;
+            border: 2px solid var(--input-border);
+            border-radius: 10px;
+            background-color: var(--input-bg);
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.1);
+            background-color: #fff;
+        }
+
+        /* Medical Range Info Styling */
+        .range-info {
+            font-size: 0.75em;
+            color: #7f8c8d;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .range-info::before {
+            content: 'ℹ';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            background-color: #e0e0e0;
+            color: #555;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Button Styling */
+        .btn-submit {
+            grid-column: 1 / -1; /* Span full width */
+            padding: 18px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Result Section */
+        .result-overlay {
+            text-align: center;
+            padding: 40px 20px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .score {
+            font-size: 4em;
+            font-weight: 700;
+            margin: 10px 0;
+            line-height: 1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn-download {
+            background-color: #34495e;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-download:hover { background-color: #2c3e50; }
+
+        .btn-reset {
+            color: #666;
+            text-decoration: none;
+            padding: 12px 25px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-reset:hover { background-color: #f5f5f5; }
+
+        /* Error Message */
+        .error-msg {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #c62828;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Heart Risk AI</h1>
+            <p>Advanced Machine Learning Prediction Model</p>
+        </div>
+
+        {% if error %}
+        <div class="error-msg">
+            <strong>⚠ Error:</strong> {{ error }}
+        </div>
+        {% endif %}
+
+        {% if prediction %}
+        <!-- Result Screen -->
+        <div class="result-overlay">
+            <div class="risk-badge" style="background-color: {{ prediction.color }}20; color: {{ prediction.color }}; border: 1px solid {{ prediction.color }}">
+                Risk Level: {{ prediction.level }}
+            </div>
+
+            <div class="score" style="color: {{ prediction.color }}">
+                %{{ prediction.percentage }}
+            </div>
+
+            <p style="color: #666; max-width: 400px; margin: 0 auto;">
+                Based on the provided clinical data, the AI model estimates this probability of heart disease.
+            </p>
+
+            <div class="action-buttons">
+                <a href="/download-pdf" class="btn-download">Download Report (PDF)</a>
+                <a href="/" class="btn-reset">Analyze New Patient</a>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Input Form -->
+        <form method="POST" action="/predict">
+
+            <!-- 1. Age -->
+            <div class="input-group">
+                <label for="Age">Patient Age</label>
+                <input type="number" name="Age" min="18" max="100" placeholder="e.g. 54" required>
+                <div class="range-info">Valid range: 18 - 100 years</div>
+            </div>
+
+            <!-- 2. Sex -->
+            <div class="input-group">
+                <label for="Sex">Biological Sex</label>
+                <select name="Sex" required>
+                    <option value="" disabled selected>Select sex...</option>
+                    <option value="1">Male</option>
+                    <option value="0">Female</option>
+                </select>
+                <div class="range-info">Clinical gender marker</div>
+            </div>
+
+            <!-- 3. Chest Pain Type -->
+            <div class="input-group">
+                <label for="ChestPainType">Chest Pain Type</label>
+                <select name="ChestPainType" required>
+                    <option value="0">Typical Angina (TA)</option>
+                    <option value="1">Atypical Angina (ATA)</option>
+                    <option value="2">Non-Anginal Pain (NAP)</option>
+                    <option value="3">Asymptomatic (ASY)</option>
+                </select>
+                <div class="range-info">Symptom classification</div>
+            </div>
+
+            <!-- 4. Resting BP -->
+            <div class="input-group">
+                <label for="RestingBP">Resting Blood Pressure</label>
+                <input type="number" name="RestingBP" min="80" max="200" placeholder="e.g. 120" required>
+                <div class="range-info">Normal: 90-120 mmHg (Systolic)</div>
+            </div>
+
+            <!-- 5. Cholesterol -->
+            <div class="input-group">
+                <label for="Cholesterol">Serum Cholesterol</label>
+                <input type="number" name="Cholesterol" min="100" max="600" placeholder="e.g. 198" required>
+                <div class="range-info">Normal: < 200 mg/dl</div>
+            </div>
+
+            <!-- 6. Fasting BS -->
+            <div class="input-group">
+                <label for="FastingBS">Fasting Blood Sugar > 120?</label>
+                <select name="FastingBS" required>
+                    <option value="0">No (Normal)</option>
+                    <option value="1">Yes (High / Diabetic)</option>
+                </select>
+                <div class="range-info">Threshold: 120 mg/dl</div>
+            </div>
+
+            <!-- 7. Resting ECG -->
+            <div class="input-group">
+                <label for="RestingECG">Resting ECG Results</label>
+                <select name="RestingECG" required>
+                    <option value="0">Normal</option>
+                    <option value="1">ST-T Wave Abnormality</option>
+                    <option value="2">Left Ventricular Hypertrophy</option>
+                </select>
+                <div class="range-info">Electrocardiogram findings</div>
+            </div>
+
+            <!-- 8. Max HR -->
+            <div class="input-group">
+                <label for="MaxHR">Max Heart Rate Achieved</label>
+                <input type="number" name="MaxHR" min="60" max="220" placeholder="e.g. 150" required>
+                <div class="range-info">Typ. Max: 220 - Age</div>
+            </div>
+
+            <!-- 9. Exercise Angina -->
+            <div class="input-group">
+                <label for="ExerciseAngina">Exercise Induced Angina?</label>
+                <select name="ExerciseAngina" required>
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+                <div class="range-info">Chest pain during exercise</div>
+            </div>
+
+            <!-- 10. Oldpeak -->
+            <div class="input-group">
+                <label for="Oldpeak">Oldpeak (ST Depression)</label>
+                <input type="number" step="0.1" name="Oldpeak" min="0" max="6.2" placeholder="e.g. 1.5" required>
+                <div class="range-info">Range: 0 - 6.0 (Relative to rest)</div>
+            </div>
+
+            <!-- 11. ST Slope -->
+            <div class="input-group">
+                <label for="ST_Slope">Slope of Peak Exercise ST</label>
+                <select name="ST_Slope" required>
+                    <option value="0">Upsloping (Better)</option>
+                    <option value="1">Flat (Risk)</option>
+                    <option value="2">Downsloping (High Risk)</option>
+                </select>
+                <div class="range-info">ECG slope pattern</div>
+            </div>
+
+            <!-- 12. CA (Major Vessels) -->
+            <div class="input-group">
+                <label for="ca">Major Vessels Colored</label>
+                <input type="number" name="ca" min="0" max="3" placeholder="0-3" required>
+                <div class="range-info">Fluoroscopy result (0-3)</div>
+            </div>
+
+            <!-- 13. Thal -->
+            <div class="input-group">
+                <label for="thal">Thalassemia Result</label>
+                <select name="thal" required>
+                    <option value="1">Normal</option>
+                    <option value="2">Fixed Defect</option>
+                    <option value="3">Reversable Defect</option>
+                </select>
+                <div class="range-info">Blood disorder check</div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-submit">
+                Run AI Analysis
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+</body>
+</html>
