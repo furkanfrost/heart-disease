@@ -1,0 +1,25 @@
+.venv/
+venv/
+env/
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+*.pkl
+*.joblib
+models/
+
+
+*.env
+.env.*
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+reports/
+output/
