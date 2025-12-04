@@ -38,7 +38,7 @@ the prediction through a simple Flask web application.
    ```
 
 2. Open `http://127.0.0.1:5000/` in your browser to use the app.
-=======
+
 
 # ❤️ Heart Attack Risk Prediction AI
 
